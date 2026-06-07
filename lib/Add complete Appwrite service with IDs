@@ -1,0 +1,98 @@
+import 'package:appwrite/appwrite.dart';
+import 'package:appwrite/models.dart';
+
+class AppwriteService {
+  late Client client;
+  late Account account;
+  late Databases databases;
+
+  // === ALL YOUR IDs IN ONE PLACE ===
+  static const String projectId = '6a23e24c0025076d9f1b';
+  static const String databaseId = 'cario_db';
+  static const String usersCollectionId = 'users';
+  static const String endpoint = 'https://cloud.appwrite.io/v1';
+
+  AppwriteService() {
+    client = Client()
+        .setEndpoint(endpoint)
+        .setProject(projectId);
+    
+    account = Account(client);
+    databases = Databases(client);
+  }
+
+  // 1. Register new user
+  Future<User?> register(String email, String password, String name) async {
+    try {
+      final user = await account.create(
+        userId: ID.unique(),
+        email: email,
+        password: password,
+        name: name,
+      );
+      
+      // Create user document in database too
+      await databases.createDocument(
+        databaseId: databaseId,
+        collectionId: usersCollectionId,
+        documentId: user.$id,
+        data: {
+          'name': name,
+          'email': email,
+          'createdAt': DateTime.now().toIso8601String(),
+        },
+      );
+      
+      return user;
+    } catch (e) {
+      print('Register error: $e');
+      return null;
+    }
+  }
+
+  // 2. Login
+  Future<Session?> login(String email, String password) async {
+    try {
+      final session = await account.createEmailPasswordSession(
+        email: email,
+        password: password,
+      );
+      return session;
+    } catch (e) {
+      print('Login error: $e');
+      return null;
+    }
+  }
+
+  // 3. Get current user
+  Future<User?> getCurrentUser() async {
+    try {
+      return await account.get();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // 4. Logout
+  Future<bool> logout() async {
+    try {
+      await account.deleteSession(sessionId: 'current');
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // 5. Get user profile from database
+  Future<Document?> getUserProfile(String userId) async {
+    try {
+      return await databases.getDocument(
+        databaseId: databaseId,
+        collectionId: usersCollectionId,
+        documentId: userId,
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+}
