@@ -1,0 +1,44 @@
+import 'package:flutter/material.dart';
+import 'appwrite_service.dart';
+import 'package:appwrite/models.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Cario App',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: AuthCheck(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+// Check if user already logged in
+class AuthCheck extends StatefulWidget {
+  @override
+  State<AuthCheck> createState() => _AuthCheckState();
+}
+
+class _AuthCheckState extends State<AuthCheck> {
+  final _service = AppwriteService();
+  bool _loading = true;
+  User? _user;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUser();
+  }
+
+  _checkUser() async {
+    final user = await _service.getCurrentUser();
+    setState(() {
+      _user = user;
+      _
