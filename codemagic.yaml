@@ -1,0 +1,10 @@
+workflows:
+  ios-release:
+    name: iOS Release
+    scripts:
+      - name: Fix missing xcodeproj
+        script: flutter create --platforms=ios .
+      - name: Build iOS
+        script: flutter build ipa --release --no-codesign
+    artifacts:
+      - build/ios/ipa/*.ipa
